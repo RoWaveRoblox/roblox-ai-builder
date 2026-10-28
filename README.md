@@ -1,6 +1,9 @@
-# RoWave AI — Roblox Game Builder
+# Ro-Create — AI Roblox Game Builder
 
 Free AI-powered platform to build complete Roblox games.
+
+**Logo & Brand**: Red · White · Black  
+**Name**: Ro-Create
 
 ## Features
 
@@ -16,7 +19,6 @@ Free AI-powered platform to build complete Roblox games.
 - **Support AI**
 - **Group / Game / Profile Analyzer**
 - **Servers**, **Marketplace**, **Find Developers**
-- Theme: **Red · White · Black**
 
 ## Setup
 

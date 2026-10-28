@@ -4,7 +4,7 @@ import Providers from "@/components/Providers";
 import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
-  title: "RoWave AI — Build Roblox Games with AI",
+  title: "Ro-Create — Build Roblox Games with AI",
   description:
     "Free AI that builds complete Roblox games: code, GUIs, Blender models, group analyzer, and more. 100 free credits daily.",
 };

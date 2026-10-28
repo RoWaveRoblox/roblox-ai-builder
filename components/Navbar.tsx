@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { Menu, X, Coins, User, LogOut, Shield } from "lucide-react";
+import { Menu, X, Coins, LogOut } from "lucide-react";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard" },
@@ -26,16 +25,21 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 border-b border-brand-red/20 bg-brand-black/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-red font-bold text-white glow-red-sm">
-            R
+        <Link href="/" className="flex items-center gap-2.5">
+          {/* Logo mark */}
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-red font-black text-white glow-red-sm tracking-tighter">
+            <span className="text-lg leading-none">RO</span>
           </div>
-          <span className="text-lg font-bold tracking-tight text-white">
-            RoWave <span className="text-brand-red">AI</span>
-          </span>
+          <div className="flex flex-col leading-none">
+            <span className="text-lg font-black tracking-tight text-white">
+              RO<span className="text-brand-red">-</span>CREATE
+            </span>
+            <span className="text-[10px] font-medium uppercase tracking-widest text-brand-gray">
+              AI Game Builder
+            </span>
+          </div>
         </Link>
 
-        {/* Desktop links */}
         <div className="hidden items-center gap-1 md:flex">
           {navLinks.map((l) => (
             <Link
@@ -107,7 +111,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile menu */}
       {open && (
         <div className="border-t border-brand-red/20 bg-brand-black px-4 py-3 md:hidden">
           {navLinks.map((l) => (

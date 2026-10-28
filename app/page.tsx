@@ -67,7 +67,7 @@ export default function HomePage() {
           Build complete{" "}
           <span className="text-brand-red">Roblox games</span>
           <br />
-          with <span className="text-brand-red">Ro-Create</span>
+          with <span className="text-brand-red">Ro_Create</span>
         </h1>
 
         <p className="mx-auto mb-10 max-w-2xl text-lg text-brand-gray">
@@ -156,7 +156,7 @@ export default function HomePage() {
       </section>
 
       <footer className="border-t border-white/5 py-8 text-center text-xs text-brand-gray">
-        © {new Date().getFullYear()} Ro-Create · Red · White · Black
+        © {new Date().getFullYear()} Ro_Create · Red · White · Black
       </footer>
     </div>
   );

@@ -26,13 +26,12 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 border-b border-brand-red/20 bg-brand-black/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
         <Link href="/" className="flex items-center gap-2.5">
-          {/* Logo mark */}
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-red font-black text-white glow-red-sm tracking-tighter">
             <span className="text-lg leading-none">RO</span>
           </div>
           <div className="flex flex-col leading-none">
             <span className="text-lg font-black tracking-tight text-white">
-              RO<span className="text-brand-red">-</span>CREATE
+              RO<span className="text-brand-red">_</span>CREATE
             </span>
             <span className="text-[10px] font-medium uppercase tracking-widest text-brand-gray">
               AI Game Builder
@@ -66,7 +65,7 @@ export default function Navbar() {
               <div className="hidden items-center gap-1.5 rounded-full border border-brand-red/30 bg-brand-black-soft px-3 py-1.5 text-sm sm:flex">
                 <Coins className="h-4 w-4 text-brand-red" />
                 <span className="font-medium text-white">
-                  {credits >= 999999 ? "∞" : credits}
+                  {credits >= 999999 ? "\u221e" : credits}
                 </span>
               </div>
               <div className="hidden items-center gap-2 sm:flex">

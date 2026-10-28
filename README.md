@@ -1,9 +1,9 @@
-# Ro-Create — AI Roblox Game Builder
+# Ro_Create — AI Roblox Game Builder
 
 Free AI-powered platform to build complete Roblox games.
 
 **Logo & Brand**: Red · White · Black  
-**Name**: Ro-Create
+**Name**: Ro_Create
 
 ## Features
 
@@ -31,8 +31,15 @@ npm run dev
 
 ## Deploy
 
-Connected to Vercel. Push to `main` to deploy.
+This is a Next.js app. On Vercel use the **Next.js** framework preset, not Node.
+If the project is already set to Node, keep:
+
+- Install command: `npm install`
+- Build command: `npm run build`
+- Start command: `npm start`
+
+Push to `main` to deploy.
 
 ## Status
 
-MVP UI is complete. Real AI backend + database (credits persistence, ranking, servers) can be added next.
+MVP UI is complete. Real AI backend + database can be added next.

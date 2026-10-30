@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSession, signIn, signOut } from "next-auth/react";
-import { Menu, X, Coins, LogOut } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
 const navLinks = [
@@ -16,11 +15,7 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
-  const user = session?.user as any;
-  const role = user?.role || "member";
-  const credits = user?.credits ?? 0;
 
   return (
     <nav className="sticky top-0 z-50 border-b border-brand-red/20 bg-brand-black/95 backdrop-blur-md">
@@ -49,65 +44,14 @@ export default function Navbar() {
               {l.label}
             </Link>
           ))}
-          {(role === "founder" || role === "owner" || role === "admin") && (
-            <Link
-              href="/admin"
-              className="rounded-md px-3 py-2 text-sm text-brand-red transition hover:bg-brand-red/10"
-            >
-              Admin
-            </Link>
-          )}
+          <Link href="/chat" className="rounded-lg bg-brand-red px-3 py-2 text-sm font-semibold text-white">
+            Open builder
+          </Link>
         </div>
 
-        <div className="flex items-center gap-3">
-          {status === "authenticated" ? (
-            <>
-              <div className="hidden items-center gap-1.5 rounded-full border border-brand-red/30 bg-brand-black-soft px-3 py-1.5 text-sm sm:flex">
-                <Coins className="h-4 w-4 text-brand-red" />
-                <span className="font-medium text-white">
-                  {credits >= 999999 ? "\u221e" : credits}
-                </span>
-              </div>
-              <div className="hidden items-center gap-2 sm:flex">
-                {user?.image && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={user.image}
-                    alt=""
-                    className="h-8 w-8 rounded-full border border-brand-red/40"
-                  />
-                )}
-                <div className="text-right">
-                  <p className="text-xs font-medium text-white">{user?.name}</p>
-                  <p className="text-[10px] uppercase tracking-wider text-brand-red">
-                    {role}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => signOut()}
-                className="rounded-md p-2 text-brand-gray hover:bg-brand-red/10 hover:text-white"
-                title="Sign out"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            </>
-          ) : (
-            <a
-              href="/chat"
-              className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-red-dark glow-red-sm"
-            >
-              Open builder
-            </a>
-          )}
-
-          <button
-            className="rounded-md p-2 text-white md:hidden"
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
+        <button className="rounded-md p-2 text-white md:hidden" onClick={() => setOpen(!open)}>
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
       </div>
 
       {open && (
@@ -122,15 +66,6 @@ export default function Navbar() {
               {l.label}
             </Link>
           ))}
-          {(role === "founder" || role === "owner" || role === "admin") && (
-            <Link
-              href="/admin"
-              onClick={() => setOpen(false)}
-              className="block rounded-md px-3 py-2.5 text-sm text-brand-red"
-            >
-              Admin Panel
-            </Link>
-          )}
         </div>
       )}
     </nav>

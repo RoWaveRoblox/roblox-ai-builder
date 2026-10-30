@@ -1,6 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Shield, UserCog } from "lucide-react";
@@ -9,8 +8,10 @@ import type { Role } from "@/types";
 const ROLES: Role[] = ["member", "mod", "admin", "owner", "founder"];
 
 export default function AdminPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  const status: string = "authenticated";
+  const session = { user: { name: "Guest", role: "member", credits: 100, image: "" } };
+  const router = { push: (_path: string) => {} };
+
   const user = session?.user as any;
   const role = user?.role as Role | undefined;
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { ShoppingBag, Tag } from "lucide-react";
@@ -13,8 +12,10 @@ const ITEMS = [
 ];
 
 export default function MarketplacePage() {
-  const { status } = useSession();
-  const router = useRouter();
+  const status: string = "authenticated";
+  const session = { user: { name: "Guest", role: "member", credits: 100, image: "" } };
+  const router = { push: (_path: string) => {} };
+
 
   useEffect(() => {
     // public: no login required

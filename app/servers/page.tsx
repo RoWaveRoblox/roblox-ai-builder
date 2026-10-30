@@ -1,6 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Plus, Users, MessageCircle } from "lucide-react";
@@ -12,8 +11,10 @@ const DEMO_SERVERS = [
 ];
 
 export default function ServersPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  const status: string = "authenticated";
+  const session = { user: { name: "Guest", role: "member", credits: 100, image: "" } };
+  const router = { push: (_path: string) => {} };
+
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
 

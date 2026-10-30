@@ -1,6 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { Send, Sparkles, Code2, Box, Layout, Copy, Check } from "lucide-react";
@@ -26,8 +25,6 @@ function lua(code: string): string {
 }
 
 export default function ChatPage() {
-  const { status } = useSession();
-  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",

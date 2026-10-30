@@ -1,14 +1,15 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Send, LifeBuoy } from "lucide-react";
 
 export default function SupportPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const [messages, setMessages] = useState([
+  const status: string = "authenticated";
+  const session = { user: { name: "Guest", role: "member", credits: 100, image: "" } };
+  const router = { push: (_path: string) => {} };
+
+  const [messages, setMessages] = useState<{ role: string; content: string }[]>([
     {
       role: "assistant" as const,
       content:

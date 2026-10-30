@@ -1,13 +1,14 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Link2, BarChart3, Lightbulb, TrendingUp } from "lucide-react";
 
 export default function AnalyzerPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  const status: string = "authenticated";
+  const session = { user: { name: "Guest", role: "member", credits: 100, image: "" } };
+  const router = { push: (_path: string) => {} };
+
   const [url, setUrl] = useState("");
   const [result, setResult] = useState<null | {
     type: string;

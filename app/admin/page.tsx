@@ -19,7 +19,7 @@ export default function AdminPage() {
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/");
+    // public: no login required
     if (status === "authenticated" && role !== "founder" && role !== "owner" && role !== "admin") {
       router.push("/dashboard");
     }

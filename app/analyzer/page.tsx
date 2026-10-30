@@ -18,7 +18,7 @@ export default function AnalyzerPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/");
+    // public: no login required
   }, [status, router]);
 
   async function analyze() {

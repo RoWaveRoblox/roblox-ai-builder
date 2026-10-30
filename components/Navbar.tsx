@@ -93,12 +93,12 @@ export default function Navbar() {
               </button>
             </>
           ) : (
-            <button
-              onClick={() => signIn("google")}
+            <a
+              href="/chat"
               className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-red-dark glow-red-sm"
             >
-              Sign in with Google
-            </button>
+              Open builder
+            </a>
           )}
 
           <button

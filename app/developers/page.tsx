@@ -17,7 +17,7 @@ export default function DevelopersPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/");
+    // public: no login required
   }, [status, router]);
 
   if (status === "loading") {

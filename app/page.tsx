@@ -1,6 +1,5 @@
 "use client";
 
-import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import {
   Sparkles,
@@ -18,12 +17,12 @@ const features = [
   {
     icon: Code2,
     title: "AI Game Builder",
-    desc: "Chat with AI to generate full Roblox Lua scripts, GUIs, and systems.",
+    desc: "Scripts, systems, and full game code from one chat.",
   },
   {
     icon: Box,
     title: "Blender Models",
-    desc: "Describe a model and get Blender-ready assets for your game.",
+    desc: "Models, builds, and animation notes you can drop into Studio.",
   },
   {
     icon: BarChart3,
@@ -47,8 +46,15 @@ const features = [
   },
 ];
 
+const shots = [
+  { name: "Adopt Me", src: "https://tr.rbxcdn.com/180DAY-bf4a477b337402d1b203d72748283772/768/432/Image/Png/noFilter" },
+  { name: "Blox Fruits", src: "https://tr.rbxcdn.com/180DAY-09e621f1df2e404a391adf389d2bea47/768/432/Image/Png/noFilter" },
+  { name: "Adopt Me icon", src: "https://tr.rbxcdn.com/180DAY-8332f0d11c0fe1d27428ee91d920a118/512/512/Image/Png/noFilter" },
+  { name: "Blox Fruits icon", src: "https://tr.rbxcdn.com/180DAY-774ec14539b264f85fdb6e8a34dfa344/512/512/Image/Png/noFilter" },
+  { name: "Tower of Hell", src: "https://t7.rbxcdn.com/180DAY-88edbd4c22e4a1b7ef17bb94d78ebde1" },
+];
+
 export default function HomePage() {
-  const { data: session, status } = useSession();
 
   return (
     <div className="relative overflow-hidden">
@@ -71,28 +77,18 @@ export default function HomePage() {
         </h1>
 
         <p className="mx-auto mb-10 max-w-2xl text-lg text-brand-gray">
-          Chat with an AI that writes code, designs GUIs, creates Blender models,
-          analyzes your groups & games, and helps you grow a successful community.
+          One AI for a full Roblox game: Lua code, GUIs, animations, building,
+          modeling, and systems. No account needed.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-4">
-          {status === "authenticated" ? (
-            <Link
-              href="/chat"
-              className="inline-flex items-center gap-2 rounded-xl bg-brand-red px-8 py-3.5 text-base font-semibold text-white transition hover:bg-brand-red-dark glow-red"
-            >
-              <Sparkles className="h-5 w-5" />
-              Open AI Builder
-            </Link>
-          ) : (
-            <button
-              onClick={() => signIn("google")}
-              className="inline-flex items-center gap-2 rounded-xl bg-brand-red px-8 py-3.5 text-base font-semibold text-white transition hover:bg-brand-red-dark glow-red"
-            >
-              <Sparkles className="h-5 w-5" />
-              Start Free with Google
-            </button>
-          )}
+          <Link
+            href="/chat"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand-red px-8 py-3.5 text-base font-semibold text-white transition hover:bg-brand-red-dark glow-red"
+          >
+            <Sparkles className="h-5 w-5" />
+            Build a game — no login
+          </Link>
           <Link
             href="/analyzer"
             className="rounded-xl border border-white/20 px-8 py-3.5 text-base font-medium text-white transition hover:border-brand-red/50 hover:bg-brand-red/5"
@@ -112,6 +108,18 @@ export default function HomePage() {
             >
               {r}
             </span>
+          ))}
+        </div>
+      </section>
+
+      <section className="relative mx-auto max-w-6xl px-4 pb-16">
+        <h2 className="mb-6 text-center text-2xl font-bold text-white">Real Roblox games</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {shots.map((s) => (
+            <figure key={s.name} className="overflow-hidden rounded-2xl border border-white/10 bg-brand-black-soft">
+              <img src={s.src} alt={s.name} className="h-44 w-full object-cover" />
+              <figcaption className="px-3 py-2 text-sm text-white">{s.name}</figcaption>
+            </figure>
           ))}
         </div>
       </section>
@@ -144,14 +152,12 @@ export default function HomePage() {
           <p className="mb-8 text-brand-gray">
             Join free. 100 credits every day. Founders get unlimited access.
           </p>
-          {status !== "authenticated" && (
-            <button
-              onClick={() => signIn("google")}
-              className="rounded-xl bg-brand-red px-8 py-3.5 font-semibold text-white hover:bg-brand-red-dark glow-red"
-            >
-              Sign in with Google
-            </button>
-          )}
+          <Link
+            href="/chat"
+            className="inline-flex rounded-xl bg-brand-red px-8 py-3.5 font-semibold text-white hover:bg-brand-red-dark glow-red"
+          >
+            Start building
+          </Link>
         </div>
       </section>
 

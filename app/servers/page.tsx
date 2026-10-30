@@ -18,7 +18,7 @@ export default function ServersPage() {
   const [name, setName] = useState("");
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/");
+    // public: no login required
   }, [status, router]);
 
   if (status === "loading") {

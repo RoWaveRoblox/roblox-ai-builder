@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { Send, Sparkles, Code2, Box, Layout, Copy, Check } from "lucide-react";
+import { pair, savedCode } from "@/lib/studio";
 
 type Message = {
   id: string;
@@ -72,6 +73,26 @@ export default function ChatPage() {
     setLoading(false);
   }
 
+  async function sendToStudio(text: string) {
+    const code = savedCode();
+    if (!code) {
+      window.location.href = "/connect";
+      return;
+    }
+    const lower = text.toLowerCase();
+    const kind = lower.includes("model") || lower.includes("part") ? "model" : lower.includes("gui") || lower.includes("localscript") ? "gui" : "script";
+    const source = kind === "model" && !text.trim().startsWith("{")
+      ? JSON.stringify({ parts: [{ name: "Build", size: [8, 1, 8], position: [0, 4, 0], color: [225, 29, 72] }] })
+      : text;
+    try {
+      await pair("push", { code, job: { kind, name: kind === "gui" ? "RoCreateGui" : kind === "model" ? "RoCreateModel" : "RoCreateScript", source } });
+      setCopied("studio");
+      setTimeout(() => setCopied(null), 2000);
+    } catch {
+      setCopied("studio-fail");
+    }
+  }
+
   function copy(text: string, id: string) {
     navigator.clipboard.writeText(text);
     setCopied(id);
@@ -112,10 +133,17 @@ export default function ChatPage() {
               }
             >
               <pre className="whitespace-pre-wrap font-sans">{m.content}</pre>
-              {m.role === "assistant" && m.content.includes(FENCE) && (
+              {m.role === "assistant" && m.id !== "welcome" && (
+                <>
+                <button
+                  onClick={() => sendToStudio(m.content)}
+                  className="mt-2 mr-3 text-xs text-brand-red"
+                >
+                  {copied === "studio" ? "Sent to Studio" : "Send to Studio"}
+                </button>
                 <button
                   onClick={() => copy(m.content, m.id)}
-                  className="mt-2 flex items-center gap-1 text-xs text-brand-gray hover:text-brand-red"
+                  className="mt-2 inline-flex items-center gap-1 text-xs text-brand-gray hover:text-brand-red"
                 >
                   {copied === m.id ? (
                     <>
@@ -127,6 +155,7 @@ export default function ChatPage() {
                     </>
                   )}
                 </button>
+                </>
               )}
             </div>
           </div>

@@ -12,6 +12,8 @@ const navLinks = [
   { href: "/servers", label: "Servers" },
   { href: "/marketplace", label: "Marketplace" },
   { href: "/developers", label: "Find Devs" },
+  { href: "/connect", label: "Connect" },
+  { href: "/thumbnails", label: "Thumbnails" },
 ];
 
 export default function Navbar() {

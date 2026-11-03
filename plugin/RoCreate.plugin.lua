@@ -17,53 +17,101 @@ end)
 
 local bg = Instance.new("Frame")
 bg.Size = UDim2.fromScale(1, 1)
-bg.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+bg.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
 bg.BorderSizePixel = 0
 bg.Parent = widget
 
-local title = Instance.new("TextLabel")
-title.BackgroundTransparency = 1
-title.Size = UDim2.new(1, -16, 0, 28)
-title.Position = UDim2.fromOffset(8, 8)
-title.Font = Enum.Font.GothamBold
-title.TextSize = 18
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.Text = "Ro_Create"
-title.Parent = bg
+local logo = Instance.new("Frame")
+logo.Size = UDim2.fromOffset(28, 28)
+logo.Position = UDim2.fromOffset(12, 12)
+logo.BackgroundColor3 = Color3.fromRGB(225, 29, 72)
+logo.Parent = bg
+local logoCorner = Instance.new("UICorner")
+logoCorner.CornerRadius = UDim.new(1, 0)
+logoCorner.Parent = logo
+local logoText = Instance.new("TextLabel")
+logoText.BackgroundTransparency = 1
+logoText.Size = UDim2.fromScale(1, 1)
+logoText.Font = Enum.Font.GothamBold
+logoText.TextSize = 12
+logoText.TextColor3 = Color3.new(1, 1, 1)
+logoText.Text = "RO"
+logoText.Parent = logo
 
-local codeLabel = Instance.new("TextLabel")
-codeLabel.BackgroundColor3 = Color3.fromRGB(225, 29, 72)
-codeLabel.Size = UDim2.new(1, -16, 0, 48)
-codeLabel.Position = UDim2.fromOffset(8, 44)
-codeLabel.Font = Enum.Font.Code
-codeLabel.TextSize = 28
-codeLabel.TextColor3 = Color3.new(1, 1, 1)
-codeLabel.Text = "--------"
-codeLabel.Parent = bg
+local version = Instance.new("TextLabel")
+version.BackgroundTransparency = 1
+version.Position = UDim2.fromOffset(48, 16)
+version.Size = UDim2.fromOffset(70, 20)
+version.Font = Enum.Font.Gotham
+version.TextSize = 14
+version.TextXAlignment = Enum.TextXAlignment.Left
+version.TextColor3 = Color3.fromRGB(200, 200, 200)
+version.Text = "v1.0.0"
+version.Parent = bg
+
+local connect = Instance.new("TextButton")
+connect.Size = UDim2.fromOffset(92, 32)
+connect.Position = UDim2.new(1, -132, 0, 10)
+connect.BackgroundColor3 = Color3.fromRGB(34, 160, 70)
+connect.Font = Enum.Font.GothamBold
+connect.TextSize = 15
+connect.TextColor3 = Color3.new(1, 1, 1)
+connect.Text = "Connect"
+connect.AutoButtonColor = true
+connect.Parent = bg
+local connectCorner = Instance.new("UICorner")
+connectCorner.CornerRadius = UDim.new(0, 8)
+connectCorner.Parent = connect
+
+local dot = Instance.new("Frame")
+dot.Size = UDim2.fromOffset(18, 18)
+dot.Position = UDim2.new(1, -30, 0, 17)
+dot.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+dot.Parent = bg
+local dotCorner = Instance.new("UICorner")
+dotCorner.CornerRadius = UDim.new(1, 0)
+dotCorner.Parent = dot
 
 local status = Instance.new("TextLabel")
 status.BackgroundTransparency = 1
-status.Size = UDim2.new(1, -16, 0, 48)
-status.Position = UDim2.fromOffset(8, 100)
+status.Size = UDim2.new(1, -24, 0, 40)
+status.Position = UDim2.fromOffset(12, 52)
 status.Font = Enum.Font.Gotham
 status.TextSize = 14
 status.TextWrapped = true
 status.TextXAlignment = Enum.TextXAlignment.Left
-status.TextYAlignment = Enum.TextYAlignment.Top
-status.TextColor3 = Color3.fromRGB(180, 180, 180)
-status.Text = "Press Connect, then paste the code into Ro_Create."
+status.TextColor3 = Color3.fromRGB(210, 210, 210)
+status.Text = "Open Ro_Create in the browser, then press Connect."
 status.Parent = bg
 
-local connect = Instance.new("TextButton")
-connect.Size = UDim2.new(1, -16, 0, 36)
-connect.Position = UDim2.fromOffset(8, 156)
-connect.BackgroundColor3 = Color3.fromRGB(225, 29, 72)
-connect.Font = Enum.Font.GothamBold
-connect.TextSize = 16
-connect.TextColor3 = Color3.new(1, 1, 1)
-connect.Text = "Connect"
-connect.Parent = bg
+local codeLabel = Instance.new("TextLabel")
+codeLabel.BackgroundTransparency = 1
+codeLabel.Size = UDim2.new(1, -24, 0, 28)
+codeLabel.Position = UDim2.fromOffset(12, 96)
+codeLabel.Font = Enum.Font.Code
+codeLabel.TextSize = 22
+codeLabel.TextXAlignment = Enum.TextXAlignment.Left
+codeLabel.TextColor3 = Color3.new(1, 1, 1)
+codeLabel.Text = ""
+codeLabel.Parent = bg
+
+local logs = Instance.new("TextButton")
+logs.Size = UDim2.fromOffset(78, 26)
+logs.Position = UDim2.new(1, -90, 1, -38)
+logs.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+logs.Font = Enum.Font.Gotham
+logs.TextSize = 13
+logs.TextColor3 = Color3.fromRGB(220, 220, 220)
+logs.Text = "Logs Off"
+logs.Parent = bg
+local logsCorner = Instance.new("UICorner")
+logsCorner.CornerRadius = UDim.new(0, 8)
+logsCorner.Parent = logs
+local logsOn = false
+logs.MouseButton1Click:Connect(function()
+	logsOn = not logsOn
+	logs.Text = logsOn and "Logs On" or "Logs Off"
+end)
 
 local activeCode = ""
 local polling = false
@@ -170,7 +218,9 @@ connect.MouseButton1Click:Connect(function()
 	end
 	activeCode = string.lower(result.code)
 	codeLabel.Text = activeCode
-	status.Text = "Paste " .. activeCode .. " into Ro_Create. This plugin will import scripts, GUIs, and models."
+	status.Text = "Paste " .. activeCode .. " into Ro_Create, then send from AI Builder."
+	dot.BackgroundColor3 = Color3.fromRGB(34, 160, 70)
 	connect.Text = "Connected"
+	connect.BackgroundColor3 = Color3.fromRGB(24, 110, 52)
 	poll()
 end)

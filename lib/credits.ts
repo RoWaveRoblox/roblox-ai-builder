@@ -6,7 +6,9 @@ export function jobFor(prompt: string): Job {
   if (text.includes("blender") || text.includes("model")) return { cost: 25, kind: "model", label: "Blender model" };
   if (text.includes("anim")) return { cost: 20, kind: "script", label: "animation" };
   if (text.includes("build") || text.includes("obby") || text.includes("map")) return { cost: 15, kind: "model", label: "build" };
-  if (text.includes("gui") || text.includes("shop") || text.includes("ui")) return { cost: 10, kind: "gui", label: "GUI" };
+  if (text.includes("sprint") || text.includes("shift") || text.includes("walkspeed")) return { cost: 8, kind: "gui", label: "sprint" };
+  if (text.includes("shop")) return { cost: 10, kind: "gui", label: "shop GUI" };
+  if (text.includes("gui") || text.includes("ui")) return { cost: 10, kind: "gui", label: "GUI" };
   return { cost: 5, kind: "script", label: "script" };
 }
 

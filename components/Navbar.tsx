@@ -14,6 +14,7 @@ const navLinks = [
   { href: "/developers", label: "Find Devs" },
   { href: "/connect", label: "Connect" },
   { href: "/thumbnails", label: "Thumbnails" },
+  { href: "/codes", label: "Codes" },
 ];
 
 export default function Navbar() {

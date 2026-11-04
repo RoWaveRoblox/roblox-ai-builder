@@ -84,16 +84,33 @@ status.TextColor3 = Color3.fromRGB(210, 210, 210)
 status.Text = "Open Ro_Create in the browser, then press Connect."
 status.Parent = bg
 
-local codeLabel = Instance.new("TextLabel")
-codeLabel.BackgroundTransparency = 1
-codeLabel.Size = UDim2.new(1, -24, 0, 28)
+local codeLabel = Instance.new("TextBox")
+codeLabel.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+codeLabel.Size = UDim2.new(1, -24, 0, 36)
 codeLabel.Position = UDim2.fromOffset(12, 96)
 codeLabel.Font = Enum.Font.Code
 codeLabel.TextSize = 22
-codeLabel.TextXAlignment = Enum.TextXAlignment.Left
+codeLabel.ClearTextOnFocus = false
+codeLabel.TextEditable = false
+codeLabel.TextXAlignment = Enum.TextXAlignment.Center
 codeLabel.TextColor3 = Color3.new(1, 1, 1)
+codeLabel.PlaceholderText = "code appears here"
 codeLabel.Text = ""
 codeLabel.Parent = bg
+local codeCorner = Instance.new("UICorner")
+codeCorner.CornerRadius = UDim.new(0, 8)
+codeCorner.Parent = codeLabel
+
+local copyHint = Instance.new("TextLabel")
+copyHint.BackgroundTransparency = 1
+copyHint.Size = UDim2.new(1, -24, 0, 18)
+copyHint.Position = UDim2.fromOffset(12, 136)
+copyHint.Font = Enum.Font.Gotham
+copyHint.TextSize = 12
+copyHint.TextXAlignment = Enum.TextXAlignment.Left
+copyHint.TextColor3 = Color3.fromRGB(160, 160, 160)
+copyHint.Text = "Click the code, select it, and copy."
+copyHint.Parent = bg
 
 local logs = Instance.new("TextButton")
 logs.Size = UDim2.fromOffset(78, 26)
@@ -218,6 +235,7 @@ connect.MouseButton1Click:Connect(function()
 	end
 	activeCode = string.lower(result.code)
 	codeLabel.Text = activeCode
+	codeLabel:CaptureFocus()
 	status.Text = "Paste " .. activeCode .. " into Ro_Create, then send from AI Builder."
 	dot.BackgroundColor3 = Color3.fromRGB(34, 160, 70)
 	connect.Text = "Connected"

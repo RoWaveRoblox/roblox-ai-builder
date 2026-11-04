@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { Send, Sparkles, Code2, Box, Layout, Copy, Check } from "lucide-react";
-import { pair, savedCode } from "@/lib/studio";
+import { pair, saveCode, savedCode } from "@/lib/studio";
+import { creditsLeft, infiniteCredits, jobFor, spend } from "@/lib/credits";
 
 type Message = {
   id: string;
@@ -37,10 +38,17 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [linked, setLinked] = useState("");
+  const [pairCode, setPairCode] = useState("");
+  const [credits, setCredits] = useState(100);
+  const [infinite, setInfinite] = useState(false);
+  const [pairNote, setPairNote] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Open to everyone. No login required.
+    setLinked(savedCode());
+    setCredits(creditsLeft());
+    setInfinite(infiniteCredits());
   }, []);
 
   useEffect(() => {
@@ -50,6 +58,16 @@ export default function ChatPage() {
   async function send(text?: string) {
     const content = (text || input).trim();
     if (!content || loading) return;
+    const job = jobFor(content);
+    if (!spend(job.cost)) {
+      setMessages((m) => [
+        ...m,
+        { id: Date.now().toString(), role: "assistant", content: `Not enough credits. This ${job.label} costs ${job.cost}. You have ${creditsLeft()}.` },
+      ]);
+      return;
+    }
+    setCredits(creditsLeft());
+    setInfinite(infiniteCredits());
 
     setMessages((m) => [
       ...m,
@@ -66,11 +84,24 @@ export default function ChatPage() {
       {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: reply,
+        content: reply + `\n\nCost: ${infiniteCredits() ? "0 (infinite)" : job.cost + " credits"} · ${job.label}. Press Send to Studio to import it.`,
         type: "text",
       },
     ]);
     setLoading(false);
+  }
+
+  async function connectHere() {
+    const next = pairCode.trim().toLowerCase();
+    if (next.length < 4) return;
+    try {
+      await pair("claim", { code: next });
+      saveCode(next);
+      setLinked(next);
+      setPairNote("Connected. Scripts, GUIs, builds, and models can import into Studio.");
+    } catch (error) {
+      setPairNote(error instanceof Error ? error.message : "Code not found.");
+    }
   }
 
   async function sendToStudio(text: string) {
@@ -79,11 +110,18 @@ export default function ChatPage() {
       window.location.href = "/connect";
       return;
     }
-    const lower = text.toLowerCase();
-    const kind = lower.includes("model") || lower.includes("part") ? "model" : lower.includes("gui") || lower.includes("localscript") ? "gui" : "script";
-    const source = kind === "model" && !text.trim().startsWith("{")
-      ? JSON.stringify({ parts: [{ name: "Build", size: [8, 1, 8], position: [0, 4, 0], color: [225, 29, 72] }] })
-      : text;
+    const job = jobFor(text);
+    const fenced = text.includes("```") ? text.split("```")[1]?.replace(/^lua\n?/, "") || text : text;
+    const kind = job.kind;
+    const source = kind === "model"
+      ? JSON.stringify({
+          parts: [
+            { name: "Blade", size: [0.4, 0.4, 4], position: [0, 5, 0], color: [220, 220, 230] },
+            { name: "Handle", size: [0.5, 1.2, 0.5], position: [0, 3.2, -1.6], color: [40, 40, 40] },
+            { name: "Base", size: [6, 1, 6], position: [0, 1, 0], color: [225, 29, 72] },
+          ],
+        })
+      : fenced;
     try {
       await pair("push", { code, job: { kind, name: kind === "gui" ? "RoCreateGui" : kind === "model" ? "RoCreateModel" : "RoCreateScript", source } });
       setCopied("studio");
@@ -105,6 +143,9 @@ export default function ChatPage() {
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-brand-red" />
           <h1 className="font-semibold text-white">AI Builder</h1>
+          <span className="rounded-full bg-white/5 px-2 py-1 text-xs text-zinc-300">
+            {infinite ? "∞ credits" : `${credits} credits`}
+          </span>
         </div>
         <div className="flex gap-2 text-xs text-brand-gray">
           <span className="flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1">
@@ -118,6 +159,24 @@ export default function ChatPage() {
           </span>
         </div>
       </div>
+
+      {!linked && (
+        <div className="border-b border-white/10 bg-black/40 px-4 py-3">
+          <p className="mb-2 text-sm text-white">Paste connect code here</p>
+          <div className="flex gap-2">
+            <input
+              value={pairCode}
+              onChange={(e) => setPairCode(e.target.value)}
+              placeholder="00687jhg"
+              className="flex-1 rounded-lg border border-white/10 bg-black px-3 py-2 font-mono text-white outline-none"
+            />
+            <button onClick={connectHere} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white">
+              Connect
+            </button>
+          </div>
+          {pairNote && <p className="mt-2 text-xs text-zinc-400">{pairNote}</p>}
+        </div>
+      )}
 
       <div className="flex-1 space-y-4 overflow-y-auto px-4 py-6">
         {messages.map((m) => (

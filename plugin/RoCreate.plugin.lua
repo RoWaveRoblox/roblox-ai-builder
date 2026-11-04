@@ -46,7 +46,7 @@ version.Font = Enum.Font.Gotham
 version.TextSize = 14
 version.TextXAlignment = Enum.TextXAlignment.Left
 version.TextColor3 = Color3.fromRGB(200, 200, 200)
-version.Text = "v1.0.0"
+version.Text = "v1.1.0"
 version.Parent = bg
 
 local connect = Instance.new("TextButton")
@@ -109,8 +109,36 @@ copyHint.Font = Enum.Font.Gotham
 copyHint.TextSize = 12
 copyHint.TextXAlignment = Enum.TextXAlignment.Left
 copyHint.TextColor3 = Color3.fromRGB(160, 160, 160)
-copyHint.Text = "Click the code, select it, and copy."
+copyHint.Text = "Press Copy code, then Ctrl+C."
 copyHint.Parent = bg
+
+local copyBtn = Instance.new("TextButton")
+copyBtn.Size = UDim2.fromOffset(110, 28)
+copyBtn.Position = UDim2.fromOffset(12, 160)
+copyBtn.BackgroundColor3 = Color3.fromRGB(225, 29, 72)
+copyBtn.Font = Enum.Font.GothamBold
+copyBtn.TextSize = 14
+copyBtn.TextColor3 = Color3.new(1, 1, 1)
+copyBtn.Text = "Copy code"
+copyBtn.Parent = bg
+local copyCorner = Instance.new("UICorner")
+copyCorner.CornerRadius = UDim.new(0, 8)
+copyCorner.Parent = copyBtn
+copyBtn.MouseButton1Click:Connect(function()
+	if activeCode == "" then
+		copyHint.Text = "Press Connect first."
+		return
+	end
+	codeLabel.Text = activeCode
+	codeLabel:CaptureFocus()
+	local copied = false
+	pcall(function()
+		setclipboard(activeCode)
+		copied = true
+	end)
+	copyBtn.Text = copied and "Copied" or "Selected"
+	copyHint.Text = copied and "Copied to your clipboard." or "Code selected. Press Ctrl+C."
+end)
 
 local logs = Instance.new("TextButton")
 logs.Size = UDim2.fromOffset(78, 26)
@@ -161,6 +189,8 @@ local function apply(job)
 	local kind = job.kind or "script"
 	local name = job.name or "RoCreateItem"
 	local source = job.source or ""
+	source = string.gsub(source, "```lua", "")
+	source = string.gsub(source, "```", "")
 
 	if kind == "gui" then
 		local gui = Instance.new("ScreenGui")

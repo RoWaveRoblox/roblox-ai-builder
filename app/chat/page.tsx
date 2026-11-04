@@ -79,16 +79,57 @@ export default function ChatPage() {
     await new Promise((r) => setTimeout(r, 900));
 
     const reply = generateDemoReply(content);
+    let imported = "Paste your connect code above and I will import the next one into Studio.";
+    if (savedCode()) {
+      try {
+        await pushToStudio(content, reply);
+        imported = "Imported into Studio. Leave the plugin open.";
+      } catch {
+        imported = "Connected, but Studio did not accept it. Update the plugin and press Connect again.";
+      }
+    }
     setMessages((m) => [
       ...m,
       {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: reply + `\n\nCost: ${infiniteCredits() ? "0 (infinite)" : job.cost + " credits"} · ${job.label}. Press Send to Studio to import it.`,
+        content: reply + `\n\nCost: ${infiniteCredits() ? "0 (infinite)" : job.cost + " credits"} · ${job.label}. ${imported}`,
         type: "text",
       },
     ]);
     setLoading(false);
+  }
+
+  async function pushToStudio(userText: string, reply: string) {
+    const code = savedCode();
+    if (!code) throw new Error("Not connected");
+    const job = jobFor(userText);
+    const fenced = reply.match(/```lua\n?([\s\S]*?)```/);
+    const lua = fenced ? fenced[1].trim() : reply;
+    if (job.kind === "model") {
+      await pair("push", {
+        code,
+        job: {
+          kind: "model",
+          name: "RoCreateModel",
+          source: JSON.stringify({
+            parts: [
+              { name: "Blade", size: [0.4, 0.4, 4], position: [0, 5, 0], color: [220, 220, 230] },
+              { name: "Handle", size: [0.5, 1.2, 0.5], position: [0, 3.2, -1.6], color: [40, 40, 40] },
+              { name: "Base", size: [6, 1, 6], position: [0, 1, 0], color: [225, 29, 72] },
+            ],
+          }),
+        },
+      });
+    }
+    await pair("push", {
+      code,
+      job: {
+        kind: job.kind === "gui" ? "gui" : "script",
+        name: job.kind === "gui" ? "RoCreateGui" : "RoCreateScript",
+        source: lua,
+      },
+    });
   }
 
   async function connectHere() {
@@ -105,25 +146,8 @@ export default function ChatPage() {
   }
 
   async function sendToStudio(text: string) {
-    const code = savedCode();
-    if (!code) {
-      window.location.href = "/connect";
-      return;
-    }
-    const job = jobFor(text);
-    const fenced = text.includes("```") ? text.split("```")[1]?.replace(/^lua\n?/, "") || text : text;
-    const kind = job.kind;
-    const source = kind === "model"
-      ? JSON.stringify({
-          parts: [
-            { name: "Blade", size: [0.4, 0.4, 4], position: [0, 5, 0], color: [220, 220, 230] },
-            { name: "Handle", size: [0.5, 1.2, 0.5], position: [0, 3.2, -1.6], color: [40, 40, 40] },
-            { name: "Base", size: [6, 1, 6], position: [0, 1, 0], color: [225, 29, 72] },
-          ],
-        })
-      : fenced;
     try {
-      await pair("push", { code, job: { kind, name: kind === "gui" ? "RoCreateGui" : kind === "model" ? "RoCreateModel" : "RoCreateScript", source } });
+      await pushToStudio(text, text);
       setCopied("studio");
       setTimeout(() => setCopied(null), 2000);
     } catch {
@@ -175,6 +199,11 @@ export default function ChatPage() {
             </button>
           </div>
           {pairNote && <p className="mt-2 text-xs text-zinc-400">{pairNote}</p>}
+        </div>
+      )}
+      {linked && (
+        <div className="border-b border-emerald-700/40 bg-emerald-950/40 px-4 py-2 text-sm text-emerald-200">
+          Connected as {linked}. New scripts, GUIs, and builds import into Studio on their own.
         </div>
       )}
 

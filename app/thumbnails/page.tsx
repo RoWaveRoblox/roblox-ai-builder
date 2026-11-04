@@ -5,6 +5,10 @@ import { useState } from "react";
 type Mode = "thumbnail" | "logo";
 type Chat = { role: "you" | "assistant"; text: string };
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export default function ThumbnailsPage() {
   const [mode, setMode] = useState<Mode>("thumbnail");
   const [prompt, setPrompt] = useState("");
@@ -13,36 +17,52 @@ export default function ThumbnailsPage() {
   const [chat, setChat] = useState<Chat[]>([
     {
       role: "assistant",
-      text: "Describe the image. I will generate a new picture, not a template. Pick Thumbnail for 1280×720 or Front logo for a square icon.",
+      text: "Describe the picture. Thumbnail is 1280×720. Front logo is 1024×1024. I generate a new image, then you can download it.",
     },
   ]);
 
-  function ask() {
+  async function ask() {
     const text = prompt.trim();
     if (!text || busy) return;
     const width = mode === "logo" ? 1024 : 1280;
     const height = mode === "logo" ? 1024 : 720;
     const style =
       mode === "logo"
-        ? "square game front logo, bold icon, centered symbol, high contrast, no watermark, no tiny unreadable text"
-        : "16:9 game thumbnail concept art, dramatic lighting, blocky stylized characters, high contrast, polished like a real Roblox experience thumbnail, no watermark, no logos of other games";
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(`${text}. ${style}`)}?width=${width}&height=${height}&nologo=true&model=flux&seed=${Date.now()}`;
+        ? "square game front logo, bold centered icon, high contrast, no watermark"
+        : "16:9 Roblox-style game thumbnail concept art, dramatic lighting, blocky stylized characters, high contrast, no watermark, no other game logos";
     setBusy(true);
-    setImage(url);
-    setChat((c) => [
-      ...c,
-      { role: "you", text },
-      { role: "assistant", text: `Generating a new ${width}×${height} ${mode === "logo" ? "front logo" : "thumbnail"}.` },
-    ]);
     setPrompt("");
+    setChat((c) => [...c, { role: "you", text }, { role: "assistant", text: `Generating ${width}×${height}...` }]);
+
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(`${text}. ${style}`)}?width=${width}&height=${height}&nologo=true&seed=${Date.now()}`;
+    try {
+      let blob: Blob | null = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const res = await fetch(url);
+        const type = res.headers.get("content-type") || "";
+        if (type.includes("image")) {
+          blob = await res.blob();
+          break;
+        }
+        const data = await res.json().catch(() => null);
+        const wait = Number(String(data?.error?.message || "").match(/(\d+)s/)?.[1] || 20);
+        setChat((c) => [...c, { role: "assistant", text: `The image service is busy. Trying again in ${wait} seconds.` }]);
+        await sleep(Math.min(wait, 45) * 1000);
+      }
+      if (!blob) throw new Error("No image came back. Try again in a minute.");
+      setImage(URL.createObjectURL(blob));
+      setChat((c) => [...c, { role: "assistant", text: "Done. Download it or describe another one." }]);
+    } catch (error) {
+      setChat((c) => [...c, { role: "assistant", text: error instanceof Error ? error.message : "Could not generate that image." }]);
+    } finally {
+      setBusy(false);
+    }
   }
 
-  async function download() {
+  function download() {
     if (!image) return;
-    const res = await fetch(image);
-    const blob = await res.blob();
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
+    link.href = image;
     link.download = mode === "logo" ? "ro-create-logo.png" : "ro-create-thumbnail.png";
     link.click();
   }
@@ -73,7 +93,7 @@ export default function ThumbnailsPage() {
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Snowy before-and-after thumbnail, shocked character, big red arrow"
+          placeholder="Snowy before-and-after thumbnail with a big red arrow"
           className="h-24 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none"
         />
         <button onClick={ask} disabled={busy} className="mt-3 w-full rounded-xl bg-brand-red py-2.5 font-semibold text-white disabled:opacity-50">
@@ -83,15 +103,9 @@ export default function ThumbnailsPage() {
       <section>
         <div className="flex min-h-[320px] items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black">
           {image ? (
-            <img
-              src={image}
-              alt="Generated thumbnail"
-              onLoad={() => setBusy(false)}
-              onError={() => setBusy(false)}
-              className="max-h-[70vh] w-full object-contain"
-            />
+            <img src={image} alt="Generated thumbnail" className="max-h-[70vh] w-full object-contain" />
           ) : (
-            <p className="text-sm text-zinc-500">Your generated image shows up here.</p>
+            <p className="px-6 text-center text-sm text-zinc-500">Your generated image shows up here. The first try can take about a minute.</p>
           )}
         </div>
         <p className="mt-2 text-xs text-zinc-500">{mode === "logo" ? "1024×1024 front logo" : "1280×720 thumbnail"}</p>

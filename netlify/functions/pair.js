@@ -66,6 +66,25 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers: cors(), body: JSON.stringify({ code: id }) };
   }
 
+  if (action === "publish") {
+    const list = (await read(blobs, "published-scripts")) || { items: [] };
+    list.items.unshift({
+      id: Date.now().toString(36),
+      title: String(body.title || "Script").slice(0, 80),
+      source: String(body.source || "").slice(0, 100000),
+      model: String(body.model || "Ro_Create"),
+      at: Date.now(),
+    });
+    list.items = list.items.slice(0, 40);
+    await write(blobs, "published-scripts", list);
+    return { statusCode: 200, headers: cors(), body: JSON.stringify({ ok: true }) };
+  }
+
+  if (action === "list-scripts") {
+    const list = (await read(blobs, "published-scripts")) || { items: [] };
+    return { statusCode: 200, headers: cors(), body: JSON.stringify(list) };
+  }
+
   const session = body.code ? await read(blobs, String(body.code).toLowerCase()) : null;
   if (!session) {
     return { statusCode: 404, headers: cors(), body: JSON.stringify({ error: "Code not found" }) };

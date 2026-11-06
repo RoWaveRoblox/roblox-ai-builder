@@ -34,6 +34,11 @@ export function spend(cost: number) {
   return true;
 }
 
+export function addCredits(amount: number) {
+  if (infiniteCredits()) return;
+  localStorage.setItem("rocreate_credits", String(creditsLeft() + amount));
+}
+
 export function grantInfinite() {
   localStorage.setItem("rocreate_infinite", "1");
 }

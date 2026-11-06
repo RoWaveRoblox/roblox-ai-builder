@@ -17,5 +17,5 @@ export async function pair(action: string, extra: Record<string, unknown> = {}) 
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || "Pair request failed");
-  return data;
+  return data as { ok?: boolean; code?: string; error?: string; items?: { id: string; title: string; model: string; source: string }[] };
 }

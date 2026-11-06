@@ -4,14 +4,17 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { Send, Sparkles, Code2, Box, Layout, Copy, Check } from "lucide-react";
 import { pair, saveCode, savedCode } from "@/lib/studio";
-import { creditsLeft, infiniteCredits, jobFor, spend } from "@/lib/credits";
+import { creditsLeft, infiniteCredits, jobFor, spend, addCredits } from "@/lib/credits";
 
 type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
-  type?: "code" | "text" | "model";
+  source?: string;
+  title?: string;
 };
+
+const MODELS = ["Gemini", "ChatGPT", "Grok", "Claude", "DeepSeek"];
 
 const QUICK = [
   { label: "Make a GUI", prompt: "Create a modern shop GUI for my Roblox game with currency display and buy buttons." },
@@ -32,7 +35,7 @@ export default function ChatPage() {
       id: "welcome",
       role: "assistant",
       content:
-        "Hey! I'm the Ro_Create AI Builder.\n\nI can generate Roblox Lua, design GUIs, help with Blender models, and walk you through a full game.\n\nWhat do you want to create today?",
+        "Tell me what to build. I drop it into Studio without pasting the code here.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -43,6 +46,9 @@ export default function ChatPage() {
   const [credits, setCredits] = useState(100);
   const [infinite, setInfinite] = useState(false);
   const [pairNote, setPairNote] = useState("");
+  const [model, setModel] = useState("Grok");
+  const [spinText, setSpinText] = useState("");
+  const [spinning, setSpinning] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -79,13 +85,15 @@ export default function ChatPage() {
     await new Promise((r) => setTimeout(r, 900));
 
     const reply = generateDemoReply(content);
-    let imported = "Paste your connect code above and I will import the next one into Studio.";
+    const fenced = reply.match(/```lua\n?([\s\S]*?)```/);
+    const source = fenced ? fenced[1].trim() : "";
+    let imported = "Connect the plugin and the next build will go straight into the place.";
     if (savedCode()) {
       try {
         await pushToStudio(content, reply);
-        imported = "Imported into Studio. Leave the plugin open.";
+        imported = "Imported into Studio.";
       } catch {
-        imported = "Connected, but Studio did not accept it. Update the plugin and press Connect again.";
+        imported = "Studio did not accept it. Leave the plugin open and press Connect again.";
       }
     }
     setMessages((m) => [
@@ -93,8 +101,9 @@ export default function ChatPage() {
       {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: reply + `\n\nCost: ${infiniteCredits() ? "0 (infinite)" : job.cost + " credits"} · ${job.label}. ${imported}`,
-        type: "text",
+        title: job.label,
+        source,
+        content: `${model} · ${job.label}. ${imported} Cost ${infiniteCredits() ? "0" : job.cost}.`,
       },
     ]);
     setLoading(false);
@@ -106,6 +115,18 @@ export default function ChatPage() {
     const job = jobFor(userText);
     const fenced = reply.match(/```lua\n?([\s\S]*?)```/);
     const lua = fenced ? fenced[1].trim() : reply;
+    const kind = job.kind === "gui" || lua.includes("ScreenGui") || lua.includes("TextButton") ? "gui" : "script";
+    if (lua) {
+      await pair("push", {
+        code,
+        job: {
+          kind,
+          name: kind === "gui" ? "RoCreateGui" : "RoCreateScript",
+          source: lua,
+        },
+      });
+      return;
+    }
     if (job.kind === "model") {
       await pair("push", {
         code,
@@ -122,14 +143,6 @@ export default function ChatPage() {
         },
       });
     }
-    await pair("push", {
-      code,
-      job: {
-        kind: job.kind === "gui" ? "gui" : "script",
-        name: job.kind === "gui" ? "RoCreateGui" : "RoCreateScript",
-        source: lua,
-      },
-    });
   }
 
   async function connectHere() {
@@ -143,6 +156,27 @@ export default function ChatPage() {
     } catch (error) {
       setPairNote(error instanceof Error ? error.message : "Code not found.");
     }
+  }
+
+  async function publish(item: Message) {
+    if (!item.source) return;
+    await pair("publish", { title: item.title || "Script", source: item.source, model });
+    setCopied(item.id);
+    setTimeout(() => setCopied(null), 2000);
+  }
+
+  async function spin() {
+    if (infiniteCredits()) {
+      setSpinText("Credits are already infinite.");
+      return;
+    }
+    setSpinning(true);
+    await new Promise((r) => setTimeout(r, 700));
+    const prize = [5, 10, 15, 25, 50, 100][Math.floor(Math.random() * 6)];
+    addCredits(prize);
+    setCredits(creditsLeft());
+    setSpinText(`+${prize}`);
+    setSpinning(false);
   }
 
   async function sendToStudio(text: string) {
@@ -170,6 +204,19 @@ export default function ChatPage() {
           <span className="rounded-full bg-white/5 px-2 py-1 text-xs text-zinc-300">
             {infinite ? "∞ credits" : `${credits} credits`}
           </span>
+          <button onClick={spin} disabled={spinning} className="rounded-full bg-brand-red px-3 py-1 text-xs font-bold text-white">
+            {spinning ? "Spinning" : "Spin"}
+          </button>
+          {spinText && <span className="text-xs text-zinc-400">{spinText}</span>}
+          <select
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+            className="rounded-lg border border-white/10 bg-black px-2 py-1 text-xs text-white"
+          >
+            {MODELS.map((name) => (
+              <option key={name}>{name}</option>
+            ))}
+          </select>
         </div>
         <div className="flex gap-2 text-xs text-brand-gray">
           <span className="flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1">
@@ -220,30 +267,11 @@ export default function ChatPage() {
                   : "max-w-[85%] rounded-2xl border border-white/10 bg-brand-black-soft px-4 py-3 text-sm leading-relaxed text-brand-white"
               }
             >
-              <pre className="whitespace-pre-wrap font-sans">{m.content}</pre>
-              {m.role === "assistant" && m.id !== "welcome" && (
-                <>
-                <button
-                  onClick={() => sendToStudio(m.content)}
-                  className="mt-2 mr-3 text-xs text-brand-red"
-                >
-                  {copied === "studio" ? "Sent to Studio" : "Send to Studio"}
+              <p className="whitespace-pre-wrap text-sm">{m.content}</p>
+              {m.role === "assistant" && m.source && (
+                <button onClick={() => publish(m)} className="mt-2 text-xs text-brand-red">
+                  {copied === m.id ? "Published" : "Publish"}
                 </button>
-                <button
-                  onClick={() => copy(m.content, m.id)}
-                  className="mt-2 inline-flex items-center gap-1 text-xs text-brand-gray hover:text-brand-red"
-                >
-                  {copied === m.id ? (
-                    <>
-                      <Check className="h-3 w-3" /> Copied
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-3 w-3" /> Copy
-                    </>
-                  )}
-                </button>
-                </>
               )}
             </div>
           </div>
@@ -297,9 +325,6 @@ export default function ChatPage() {
             <Send className="h-5 w-5" />
           </button>
         </form>
-        <p className="mt-2 text-center text-[11px] text-brand-gray">
-          Demo mode. Responses are simulated until a real AI backend is connected.
-        </p>
       </div>
     </div>
   );
@@ -417,6 +442,56 @@ function generateDemoReply(prompt: string): string {
       ].join("\n")),
       "",
       "Want this expanded with items and a DataStore backend?",
+    ].join("\n");
+  }
+  if (lower.includes("anim")) {
+    return [
+      "Animation imported.",
+      "",
+      lua([
+        "-- AnimateBuild (ServerScript)",
+        "local model = Instance.new(\"Model\")",
+        "model.Name = \"RoCreateAnim\"",
+        "model.Parent = workspace",
+        "local part = Instance.new(\"Part\")",
+        "part.Name = \"Spinner\"",
+        "part.Size = Vector3.new(4, 1, 4)",
+        "part.Anchored = true",
+        "part.Position = Vector3.new(0, 4, 0)",
+        "part.Color = Color3.fromRGB(225, 29, 72)",
+        "part.Parent = model",
+        "task.spawn(function()",
+        "  while part.Parent do",
+        "    part.CFrame = part.CFrame * CFrame.Angles(0, math.rad(4), 0)",
+        "    task.wait(0.03)",
+        "  end",
+        "end)",
+      ].join("\n")),
+    ].join("\n");
+  }
+  if (lower.includes("build") || lower.includes("house") || lower.includes("map")) {
+    return [
+      "Build imported.",
+      "",
+      lua([
+        "-- Build (ServerScript)",
+        "local model = Instance.new(\"Model\")",
+        "model.Name = \"RoCreateBuild\"",
+        "model.Parent = workspace",
+        "local function block(name, size, pos, color)",
+        "  local part = Instance.new(\"Part\")",
+        "  part.Name = name",
+        "  part.Anchored = true",
+        "  part.Size = size",
+        "  part.Position = pos",
+        "  part.Color = color",
+        "  part.Parent = model",
+        "end",
+        "block(\"Floor\", Vector3.new(24, 1, 24), Vector3.new(0, 1, 0), Color3.fromRGB(30, 30, 30))",
+        "block(\"WallA\", Vector3.new(24, 8, 1), Vector3.new(0, 5, -12), Color3.fromRGB(225, 29, 72))",
+        "block(\"WallB\", Vector3.new(1, 8, 24), Vector3.new(12, 5, 0), Color3.fromRGB(20, 20, 20))",
+        "block(\"Roof\", Vector3.new(26, 1, 26), Vector3.new(0, 10, 0), Color3.fromRGB(40, 40, 40))",
+      ].join("\n")),
     ].join("\n");
   }
   if (lower.includes("obby") || lower.includes("stage")) {

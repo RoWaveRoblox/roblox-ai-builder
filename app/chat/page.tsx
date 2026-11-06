@@ -308,6 +308,8 @@ export default function ChatPage() {
 function generateDemoReply(prompt: string): string {
   const lower = prompt.toLowerCase();
   if (lower.includes("sprint") || lower.includes("shift") || lower.includes("walkspeed")) {
+    const asked = lower.match(/(?:to|speed)\s*(\d{1,3})/);
+    const sprintSpeed = asked ? Math.min(200, Math.max(10, Number(asked[1]))) : 28;
     return [
       "Sprint script with Shift on keyboard and a Sprint button for mobile:",
       "",
@@ -319,7 +321,7 @@ function generateDemoReply(prompt: string): string {
         "local gui = script.Parent",
         "",
         "local NORMAL = 16",
-        "local SPRINT = 28",
+        "local SPRINT = " + sprintSpeed,
         "local sprinting = false",
         "",
         "local function humanoid()",
@@ -378,7 +380,7 @@ function generateDemoReply(prompt: string): string {
         "end)",
       ].join("\n")),
       "",
-      "Hold Shift on keyboard. On mobile, hold the Sprint button. It sets WalkSpeed to 28, then back to 16.",
+      "Hold Shift on keyboard. On mobile, hold the Sprint button. It sets WalkSpeed to " + sprintSpeed + ", then back to 16.",
     ].join("\n");
   }
   if (lower.includes("shop")) {

@@ -1,10 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { Send, Sparkles, Code2, Box, Layout, Copy, Check } from "lucide-react";
+import { Send, Sparkles, Code2, Box, Layout } from "lucide-react";
 import { pair, saveCode, savedCode } from "@/lib/studio";
 import { creditsLeft, infiniteCredits, jobFor, spend, addCredits } from "@/lib/credits";
+import { planBuild } from "@/lib/make";
 
 type Message = {
   id: string;
@@ -84,13 +84,11 @@ export default function ChatPage() {
 
     await new Promise((r) => setTimeout(r, 900));
 
-    const reply = generateDemoReply(content);
-    const fenced = reply.match(/```lua\n?([\s\S]*?)```/);
-    const source = fenced ? fenced[1].trim() : "";
-    let imported = "Connect the plugin and the next build will go straight into the place.";
+    const built = planBuild(content);
+    let imported = "Connect the plugin and this will be placed in the game.";
     if (savedCode()) {
       try {
-        await pushToStudio(content, reply);
+        await pushBuild(built);
         imported = "Imported into Studio.";
       } catch {
         imported = "Studio did not accept it. Leave the plugin open and press Connect again.";
@@ -101,48 +99,21 @@ export default function ChatPage() {
       {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        title: job.label,
-        source,
-        content: `${model} · ${job.label}. ${imported} Cost ${infiniteCredits() ? "0" : job.cost}.`,
+        title: built.title,
+        source: built.source,
+        content: `Created ${built.title}. ${built.summary} ${imported}`,
       },
     ]);
     setLoading(false);
   }
 
-  async function pushToStudio(userText: string, reply: string) {
+  async function pushBuild(built: { kind: "script" | "gui" | "model"; source: string; name: string }) {
     const code = savedCode();
     if (!code) throw new Error("Not connected");
-    const job = jobFor(userText);
-    const fenced = reply.match(/```lua\n?([\s\S]*?)```/);
-    const lua = fenced ? fenced[1].trim() : reply;
-    const kind = job.kind === "gui" || lua.includes("ScreenGui") || lua.includes("TextButton") ? "gui" : "script";
-    if (lua) {
-      await pair("push", {
-        code,
-        job: {
-          kind,
-          name: kind === "gui" ? "RoCreateGui" : "RoCreateScript",
-          source: lua,
-        },
-      });
-      return;
-    }
-    if (job.kind === "model") {
-      await pair("push", {
-        code,
-        job: {
-          kind: "model",
-          name: "RoCreateModel",
-          source: JSON.stringify({
-            parts: [
-              { name: "Blade", size: [0.4, 0.4, 4], position: [0, 5, 0], color: [220, 220, 230] },
-              { name: "Handle", size: [0.5, 1.2, 0.5], position: [0, 3.2, -1.6], color: [40, 40, 40] },
-              { name: "Base", size: [6, 1, 6], position: [0, 1, 0], color: [225, 29, 72] },
-            ],
-          }),
-        },
-      });
-    }
+    await pair("push", {
+      code,
+      job: { kind: built.kind, name: built.name, source: built.source },
+    });
   }
 
   async function connectHere() {
@@ -177,22 +148,6 @@ export default function ChatPage() {
     setCredits(creditsLeft());
     setSpinText(`+${prize}`);
     setSpinning(false);
-  }
-
-  async function sendToStudio(text: string) {
-    try {
-      await pushToStudio(text, text);
-      setCopied("studio");
-      setTimeout(() => setCopied(null), 2000);
-    } catch {
-      setCopied("studio-fail");
-    }
-  }
-
-  function copy(text: string, id: string) {
-    navigator.clipboard.writeText(text);
-    setCopied(id);
-    setTimeout(() => setCopied(null), 2000);
   }
 
   return (

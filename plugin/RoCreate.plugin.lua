@@ -46,7 +46,7 @@ version.Font = Enum.Font.Gotham
 version.TextSize = 14
 version.TextXAlignment = Enum.TextXAlignment.Left
 version.TextColor3 = Color3.fromRGB(200, 200, 200)
-version.Text = "v1.1.0"
+version.Text = "v1.2.0"
 version.Parent = bg
 
 local connect = Instance.new("TextButton")
@@ -193,11 +193,22 @@ local function apply(job)
 	source = string.gsub(source, "```", "")
 
 	if kind == "gui" then
-		local gui = Instance.new("ScreenGui")
-		gui.Name = name
-		gui.ResetOnSpawn = false
-		gui.Parent = game:GetService("StarterGui")
-		insertScript(gui, "LocalScript", name .. "Script", source)
+		local function mount(parent)
+			local existing = parent:FindFirstChild(name)
+			if existing then existing:Destroy() end
+			local gui = Instance.new("ScreenGui")
+			gui.Name = name
+			gui.ResetOnSpawn = false
+			gui.IgnoreGuiInset = true
+			gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+			gui.Parent = parent
+			insertScript(gui, "LocalScript", "Build", source)
+		end
+		mount(game:GetService("StarterGui"))
+		for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+			local playerGui = player:FindFirstChild("PlayerGui")
+			if playerGui then mount(playerGui) end
+		end
 	elseif kind == "model" then
 		local ok, data = pcall(function()
 			return HttpService:JSONDecode(source)

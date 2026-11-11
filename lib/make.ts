@@ -4,6 +4,8 @@ export type Build = {
   summary: string;
   source: string;
   name: string;
+  className?: "Script" | "LocalScript" | "ModuleScript";
+  location?: "ServerScriptService" | "StarterPlayerScripts" | "StarterCharacterScripts" | "Workspace" | "ReplicatedStorage";
 };
 
 function buttonsFrom(prompt: string): string[] {

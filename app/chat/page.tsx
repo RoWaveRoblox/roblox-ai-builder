@@ -108,12 +108,18 @@ export default function ChatPage() {
     setLoading(false);
   }
 
-  async function pushBuild(built: { kind: "script" | "gui" | "model"; source: string; name: string }) {
+  async function pushBuild(built: { kind: "script" | "gui" | "model"; source: string; name: string; className?: string; location?: string }) {
     const code = savedCode();
     if (!code) throw new Error("Not connected");
     await pair("push", {
       code,
-      job: { kind: built.kind, name: built.name, source: built.source },
+      job: {
+        kind: built.kind,
+        name: built.name,
+        source: built.source,
+        className: built.className || "Script",
+        location: built.location || "ServerScriptService",
+      },
     });
   }
 

@@ -112,6 +112,8 @@ exports.handler = async (event) => {
       kind: job.kind || "script",
       name: job.name || "RoCreate",
       source: String(job.source || "").slice(0, 100000),
+      className: job.className || "Script",
+      location: job.location || "ServerScriptService",
     });
     session.jobs = session.jobs.slice(-20);
     await write(blobs, key, session);

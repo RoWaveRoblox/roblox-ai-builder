@@ -46,7 +46,7 @@ version.Font = Enum.Font.Gotham
 version.TextSize = 14
 version.TextXAlignment = Enum.TextXAlignment.Left
 version.TextColor3 = Color3.fromRGB(200, 200, 200)
-version.Text = "v1.4.0"
+version.Text = "v1.5.0"
 version.Parent = bg
 
 local connect = Instance.new("TextButton")
@@ -210,6 +210,7 @@ local function apply(job)
 					local className = "Frame"
 					if info.type == "label" then className = "TextLabel" end
 					if info.type == "button" then className = "TextButton" end
+					if info.type == "logo" then className = "TextLabel" end
 					local obj = Instance.new(className)
 					obj.Name = info.name or info.text or "Item"
 					obj.Size = UDim2.fromScale(info.w or 0.3, info.h or 0.08)
@@ -217,31 +218,39 @@ local function apply(job)
 					local color = info.color or {20, 20, 20}
 					obj.BackgroundColor3 = Color3.fromRGB(color[1] or 20, color[2] or 20, color[3] or 20)
 					obj.BorderSizePixel = 0
-					if obj:IsA("GuiObject") and info.type == "label" then
+					if info.type == "label" then
 						obj.BackgroundTransparency = 1
 					end
 					if obj:IsA("TextLabel") or obj:IsA("TextButton") then
 						obj.Text = tostring(info.text or "")
 						obj.TextColor3 = Color3.new(1, 1, 1)
 						obj.Font = Enum.Font.GothamBold
-						obj.TextSize = 18
+						obj.TextSize = info.type == "logo" and 22 or 18
 					end
 					local corner = Instance.new("UICorner")
-					corner.CornerRadius = UDim.new(0, 12)
+					corner.CornerRadius = info.type == "logo" and UDim.new(1, 0) or UDim.new(0, 12)
 					corner.Parent = obj
 					obj.Parent = gui
 				end
-				insertScript(gui, "LocalScript", "Clicks", [[
-for _, obj in ipairs(script.Parent:GetDescendants()) do
-	if obj:IsA("TextButton") then
-		obj.MouseButton1Click:Connect(function()
-			print(obj.Text)
-		end)
-	end
-end
-]])
 			else
-				insertScript(gui, "LocalScript", "Build", source)
+				local panel = Instance.new("Frame")
+				panel.Name = "Panel"
+				panel.Size = UDim2.fromScale(0.4, 0.45)
+				panel.Position = UDim2.fromScale(0.3, 0.25)
+				panel.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
+				panel.BorderSizePixel = 0
+				panel.Parent = gui
+				local panelCorner = Instance.new("UICorner")
+				panelCorner.CornerRadius = UDim.new(0, 16)
+				panelCorner.Parent = panel
+				local title = Instance.new("TextLabel")
+				title.BackgroundTransparency = 1
+				title.Size = UDim2.fromScale(1, 0.2)
+				title.Font = Enum.Font.GothamBold
+				title.TextSize = 24
+				title.TextColor3 = Color3.new(1, 1, 1)
+				title.Text = name
+				title.Parent = panel
 			end
 		end
 		mount(game:GetService("StarterGui"))
@@ -279,7 +288,22 @@ end
 		end
 		model.PrimaryPart = model:FindFirstChildWhichIsA("BasePart")
 	else
-		insertScript(game:GetService("ServerScriptService"), "Script", name, source)
+		local className = job.className or "Script"
+		if className ~= "LocalScript" and className ~= "ModuleScript" then
+			className = "Script"
+		end
+		local location = job.location or "ServerScriptService"
+		local parent = game:GetService("ServerScriptService")
+		if location == "StarterPlayerScripts" then
+			parent = game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts")
+		elseif location == "StarterCharacterScripts" then
+			parent = game:GetService("StarterPlayer"):WaitForChild("StarterCharacterScripts")
+		elseif location == "Workspace" then
+			parent = workspace
+		elseif location == "ReplicatedStorage" then
+			parent = game:GetService("ReplicatedStorage")
+		end
+		insertScript(parent, className, name, source)
 	end
 	ChangeHistory:SetWaypoint("Ro_Create imported " .. name)
 end

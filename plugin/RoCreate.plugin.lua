@@ -46,7 +46,7 @@ version.Font = Enum.Font.Gotham
 version.TextSize = 14
 version.TextXAlignment = Enum.TextXAlignment.Left
 version.TextColor3 = Color3.fromRGB(200, 200, 200)
-version.Text = "v1.3.0"
+version.Text = "v1.4.0"
 version.Parent = bg
 
 local connect = Instance.new("TextButton")
@@ -288,15 +288,20 @@ local function poll()
 	if polling or activeCode == "" then return end
 	polling = true
 	task.spawn(function()
-		while activeCode ~= "" and widget.Parent do
+		while activeCode ~= "" do
 			local ok, result = pcall(function()
 				return post({ action = "pull", code = activeCode })
 			end)
 			if ok and result and result.jobs then
+				if #result.jobs == 0 then
+					status.Text = "Connected. Waiting for a build from the website."
+				end
 				for _, job in ipairs(result.jobs) do
 					local applied, err = pcall(apply, job)
-					status.Text = applied and ("Imported " .. (job.name or "item")) or tostring(err)
+					status.Text = applied and ("Imported " .. (job.name or "item") .. " into the place.") or tostring(err)
 				end
+			else
+				status.Text = "Could not reach Ro_Create. Check HTTP requests, then press Connect again."
 			end
 			task.wait(2)
 		end

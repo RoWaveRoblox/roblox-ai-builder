@@ -55,6 +55,8 @@ export default function ChatPage() {
     setLinked(savedCode());
     setCredits(creditsLeft());
     setInfinite(infiniteCredits());
+    const prompt = new URLSearchParams(window.location.search).get("prompt");
+    if (prompt) setInput(prompt);
   }, []);
 
   useEffect(() => {

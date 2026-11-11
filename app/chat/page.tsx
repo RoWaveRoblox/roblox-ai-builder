@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { Send, Sparkles, Code2, Box, Layout } from "lucide-react";
 import { pair, saveCode, savedCode } from "@/lib/studio";
 import { creditsLeft, infiniteCredits, jobFor, spend, addCredits } from "@/lib/credits";
-import { planBuild } from "@/lib/make";
+import { generateBuilds } from "@/lib/generate";
 
 type Message = {
   id: string;
@@ -82,26 +82,25 @@ export default function ChatPage() {
     setInput("");
     setLoading(true);
 
-    await new Promise((r) => setTimeout(r, 900));
-
-    const built = planBuild(content);
+    const builds = await generateBuilds(content);
     let imported = "Connect the plugin and this will be placed in the game.";
     if (savedCode()) {
       try {
-        await pushBuild(built);
+        for (const built of builds) await pushBuild(built);
         imported = "Imported into Studio.";
       } catch {
-        imported = "Studio did not accept it. Leave the plugin open and press Connect again.";
+        imported = "Studio did not accept it. Update the plugin to v1.2.0, leave it open, and press Connect again.";
       }
     }
+    const summary = builds.map((built) => `${built.title}: ${built.summary}`).join(" ");
     setMessages((m) => [
       ...m,
       {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        title: built.title,
-        source: built.source,
-        content: `Created ${built.title}. ${built.summary} ${imported}`,
+        title: builds.map((built) => built.title).join(" + "),
+        source: builds.map((built) => built.source).join("\n\n"),
+        content: `Created ${summary} ${imported}`,
       },
     ]);
     setLoading(false);

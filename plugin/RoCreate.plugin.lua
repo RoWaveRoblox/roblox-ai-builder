@@ -46,7 +46,7 @@ version.Font = Enum.Font.Gotham
 version.TextSize = 14
 version.TextXAlignment = Enum.TextXAlignment.Left
 version.TextColor3 = Color3.fromRGB(200, 200, 200)
-version.Text = "v1.2.0"
+version.Text = "v1.3.0"
 version.Parent = bg
 
 local connect = Instance.new("TextButton")
@@ -193,6 +193,9 @@ local function apply(job)
 	source = string.gsub(source, "```", "")
 
 	if kind == "gui" then
+		local decoded, data = pcall(function()
+			return HttpService:JSONDecode(source)
+		end)
 		local function mount(parent)
 			local existing = parent:FindFirstChild(name)
 			if existing then existing:Destroy() end
@@ -202,7 +205,44 @@ local function apply(job)
 			gui.IgnoreGuiInset = true
 			gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 			gui.Parent = parent
-			insertScript(gui, "LocalScript", "Build", source)
+			if decoded and type(data) == "table" and type(data.elements) == "table" then
+				for _, info in ipairs(data.elements) do
+					local className = "Frame"
+					if info.type == "label" then className = "TextLabel" end
+					if info.type == "button" then className = "TextButton" end
+					local obj = Instance.new(className)
+					obj.Name = info.name or info.text or "Item"
+					obj.Size = UDim2.fromScale(info.w or 0.3, info.h or 0.08)
+					obj.Position = UDim2.fromScale(info.x or 0.35, info.y or 0.2)
+					local color = info.color or {20, 20, 20}
+					obj.BackgroundColor3 = Color3.fromRGB(color[1] or 20, color[2] or 20, color[3] or 20)
+					obj.BorderSizePixel = 0
+					if obj:IsA("GuiObject") and info.type == "label" then
+						obj.BackgroundTransparency = 1
+					end
+					if obj:IsA("TextLabel") or obj:IsA("TextButton") then
+						obj.Text = tostring(info.text or "")
+						obj.TextColor3 = Color3.new(1, 1, 1)
+						obj.Font = Enum.Font.GothamBold
+						obj.TextSize = 18
+					end
+					local corner = Instance.new("UICorner")
+					corner.CornerRadius = UDim.new(0, 12)
+					corner.Parent = obj
+					obj.Parent = gui
+				end
+				insertScript(gui, "LocalScript", "Clicks", [[
+for _, obj in ipairs(script.Parent:GetDescendants()) do
+	if obj:IsA("TextButton") then
+		obj.MouseButton1Click:Connect(function()
+			print(obj.Text)
+		end)
+	end
+end
+]])
+			else
+				insertScript(gui, "LocalScript", "Build", source)
+			end
 		end
 		mount(game:GetService("StarterGui"))
 		for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
